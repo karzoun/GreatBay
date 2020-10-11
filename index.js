@@ -76,11 +76,20 @@ function bidOnItem() {
         if (err) {
             throw err
         } else {
-            console.table(data)
-            inquirer.prompt([{
-                    name: "auctionId",
-                    message: "what is the id of the item you want to bid on?",
-                    type: "input"
+            const productName = []
+            for (let i = 0; i < data.length; i++) {
+                productName.push(data[i].product_name)
+
+            }
+            console.log(productName);
+
+            inquirer.prompt([
+
+                {
+                    name: "productName",
+                    message: "what is the the item you want to bid on?",
+                    type: "list",
+                    choices: productName
                 },
                 {
                     name: "bid",
@@ -89,12 +98,16 @@ function bidOnItem() {
                 }
 
             ]).then(function(answers) {
-                connection.query("SELECT * FROM auctions WHERE id = ?", answers.auctionId, function(err, data) {
+                let auctionId = '';
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].product_name === answers.productName)
+                        auctionId = data[i].id
+
+                }
+                connection.query("SELECT * FROM auctions WHERE id = ?", auctionId, function(err, data) {
                     console.log(data);
-                    console.log('=================');
-                    if (data.current_bid < answers.bid) {
-
-
+                    console.log('==============================');
+                    if (data[0].current_bid < answers.bid) {
 
                         connection.query("UPDATE auctions SET ? WHERE ?", [
                             { current_bid: answers.bid },
@@ -116,6 +129,8 @@ function bidOnItem() {
             })
         }
     })
+
+
 
 
 }
